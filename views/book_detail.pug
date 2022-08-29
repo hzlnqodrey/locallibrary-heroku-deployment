@@ -1,0 +1,39 @@
+extends layout 
+
+block content
+    h1 Title: #{book.title}
+    h6 #[strong Author:] 
+        a(href=book.author.url)  #{book.author.name}
+    h6 #[strong Summary:]  #{book.summary}
+    h6 #[strong ISBN:] #{book.isbn}
+    //- because genre is object of an array we need to iterate it
+    h6 #[strong Genre:]
+        each val, index in book.genre
+            a(href=val.url)  #{val.name}
+            if index < book.genre.length
+                | ,
+         
+    div(style='margin-left:30px;margin-top:20px')
+
+        h3 Copies
+
+        hr
+
+        dl
+            each copy in book_copies
+                dd
+                    if copy.status == 'Available'
+                        span.text-success #{copy.status}
+                    else if copy.status == 'Maintenance'
+                        span.text-danger #{copy.status}
+                    else if copy.status = 'Loaned'
+                        span.text-warning #{copy.status}
+                    if copy.status!='Available'
+                        span  (Due: #{copy.due_back_formatted})
+                dd #[strong Imprint:] #{copy.imprint}
+                dd #[strong Id: ]
+                     a(href=copy.url) #{copy._id}
+                br
+
+            else
+                p There book has no copies
