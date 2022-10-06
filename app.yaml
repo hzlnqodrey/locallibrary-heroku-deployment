@@ -1,0 +1,10 @@
+runtime: nodejs14
+env: flex
+
+instance_class: F2
+
+env_variables:
+  INSTANCE_UNIX_SOCKET: /cloudsql/tedi-backend-website:asia-southeast-2:locallibrary
+  DB_USER: process.env.MY_DB_USER
+  DB_PASS: process.env.MY_DB_PASSWORD
+  DB_NAME: process.env.MY_DATABASE

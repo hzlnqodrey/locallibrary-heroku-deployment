@@ -1,6 +1,9 @@
-const Genre = require('../models/genre')
-const Book = require('../models/book')
-const async = require('async')
+const Genre                      = require('../models/genre')
+const Book                       = require('../models/book')
+const async                      = require('async')
+
+// Validator
+const { body, validationResult } = require('express-validator')
 
 // Display list of all genre
 exports.genre_list = (req, res, next) => {
@@ -49,14 +52,63 @@ exports.genre_detail = (req, res, next) => {
 }
 
 // Display Genre create form on GET.
-exports.genre_create_get = (req, res) => {
-    res.send('Genre Create Get')
+exports.genre_create_get = (req, res, next) => {
+    res.render('genre_form', {
+        title: "Create Genre"
+    })
 }
 
 // Handle Genre create form on POST.
-exports.genre_create_post = (req, res) => {
-    res.send('Genre Create Post')
-}
+exports.genre_create_post = [
+    // Validate and sanitize the name field.
+    body("name", "Genre name required")
+        .trim() // to delete (if is there) the first whitespace and the last whitespace
+        .isLength({ min: 1 }) // to check whether string value is minimal 1 
+        .escape(), // to remove HTML characters from the variable that might be used in JavaScript cross-site scripting attacks.
+
+    // HTTP Response | Process request after validation and sanitization.
+    (req, res, next) => {
+        // Extract the validation errors from a request.
+        const errors = validationResult(req)
+
+        // Create a genre object with escaped and trimmed data.
+        const genre = new Genre({ name : req.body.name })
+
+        if ( !errors.isEmpty() ) {
+            // There are errors, Render the form again with sanitized values/error messages.
+            res.render("genre_form", {
+                title: "Create Genre",
+                genre,
+                errors: errors.array(),
+            })
+
+            return
+        } else {
+            // Data from form is valid.
+            // Check if Genre with same name already exists.
+            Genre.findOne({ name: req.body.name }).exec(( err, found_genre) => {
+                if ( err ) {
+                    return next(err)
+                }
+
+                if ( found_genre ) {
+                    // Genre already exists. redirect to its detail page
+                    res.redirect(found_genre.url)
+                } else {
+                    // Genre is new data, store it on the database
+                    genre.save((err) => {
+                        if ( err ) {
+                            return next(err)
+                        }
+                        
+                        // Genre is added. redirect to its detail page
+                        res.redirect(genre.url)
+                    })
+                }
+            })
+        }
+    }
+]
 
 // Display Genre delete form on GET.
 exports.genre_delete_get = (req, res) => {

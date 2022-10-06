@@ -1,26 +1,26 @@
 require('dotenv').config()
-const createError = require('http-errors')
-const express = require('express')
-const path = require('path')
-const cookieParser = require('cookie-parser')
-const logger = require('morgan')
+const createError                   = require('http-errors')
+const express                       = require('express')
+const path                          = require('path')
+const cookieParser                  = require('cookie-parser')
+const logger                        = require('morgan')
+const { body, validationResult }    = require('express-validator')
 
 // Import Route
-const indexRouter = require('./routes/index')
-const usersRouter = require('./routes/users')
-const wikiRouter = require('./routes/wiki')
-const catalogRouter = require('./routes/catalog')
+const indexRouter                   = require('./routes/index')
+const usersRouter                   = require('./routes/users')
+const wikiRouter                    = require('./routes/wiki')
+const catalogRouter                 = require('./routes/catalog')
 
 // HTTPS-Client Compression for reducing time rendering/load
-const compression = require('compression');
+const compression                   = require('compression');
 // Helmet for Network Traffic Security
-const helmet = require('helmet')
+const helmet                        = require('helmet')
 
 const app = express()
 
 // Mongoose Connection Setup
   // DB Variable
-  const dev_db_url = "mongodb+srv://hazlanqodrey:47OKd0rKJKM1f8Ke@cluster0.pg4ky.mongodb.net/local_library?retryWrites=true&w=majority"
   const mongoDB = process.env.MONGODB_URI || dev_db_url
   // Import Connection
   const mongoose = require('mongoose')
