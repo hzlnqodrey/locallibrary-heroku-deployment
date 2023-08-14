@@ -1,0 +1,37 @@
+# docker compose is It's just structured way to contain very normal docker configuration documents
+# It's going to be easier to read and easier to maintain
+# Docker Compose takes cares of creating network, so we won't need to create docker network manually
+
+version: '3'  # version of docker-compose
+services: # is container(s) that want to be created
+  # containers - mongodb, mongo-express [same level]
+  my-app:
+    image: <create-local-library-image-here>
+    ports:
+      - 5000:5000
+  mongodb: # container name 
+    image: mongo # image name
+    ports:
+      - 27017:27017 # port mapping HOST:CONTAINER
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password 
+    volumes:
+      - db-data:/var/lib/mongo/data # volume mapping HOST:CONTAINER
+
+  mongo-express:
+    image: mongo-express
+    ports:
+      - 8080:8081
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=password
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+
+# same level as services, you would list all the volumes that you defined
+volumes:
+
+# HOW TO START DOCKER COMPOSE
+# docker-compose -f docker-compose.yaml up
+# HOW TO STOP DOCKER COMPOSE
+# docker-compose -f docker-compose.yaml down

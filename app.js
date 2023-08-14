@@ -20,26 +20,30 @@ const helmet                        = require('helmet')
 const app = express()
 
 // MONGO CLIENT
-// const MongoClient = require('mongodb').MongoClient
+const MongoClient = require('mongodb').MongoClient
 
 // Mongoose Connection Setup
   // DB Variable
-  const mongoDB = process.env.MONGODB_URI || process.env.MONGODB_URI_CLIENT
-  // Import Connection
-  const mongoose = require('mongoose')
-  mongoose.connect(mongoDB , {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-  })
-  const db = mongoose.connection
-  db.on('error', console.error.bind(console, "MongoDB connection error"))
+  // const mongoDB = process.env.MONGODB_URI || process.env.MONGODB_URI_CLIENT
+  // // Import Connection
+  // const mongoose = require('mongoose')
+  // mongoose.connect(mongoDB , {
+  //     useNewUrlParser: true,
+  //     useUnifiedTopology: true
+  // })
+  // const db = mongoose.connection
+  // db.on('error', console.error.bind(console, "MongoDB connection error"))
 
   // // USE MONGO CLIENT
-  // MongoClient.connect(mongoDB, function(err, client) {
-  //   if (err) console.log(err);
-  //   const db = client.db(mongoDB);
-  //   client.close();
-  // });
+  const url = 'mongodb://admin:password@localhost:27017'
+  const MongoClient = new MongoClient(url, {useUnifiedTopology: true});
+  MongoClient.connect(connectionURL, {useNewUrlParser: true, useUnifiedTopology: true}, (error, client) => {
+    if(error) {
+        return console.log('Error connecting to the server.')
+    }
+
+    console.log('Succesfully connected.')
+  })
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))

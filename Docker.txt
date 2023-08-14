@@ -1,0 +1,167 @@
+• DOCKER DEFINITION EXPLAINED:
+    • IMAGE is a template that defines how a container will be realized [Application Layer of Docker]
+
+    • CONTAINER is a running instance of an IMAGE
+
+    • DOCKER REGISTRIES is a storage and distribution system for DOCKER IMAGES
+
+    • DOCKER HUB is a maintained DOCKER REGISTRIES
+
+    • TAGS is a different VERSIONING of IMAGES
+
+    • Docker Registry:
+        A service providing storage and Collection of image repositories
+        • Private Docker Registries:
+            - You need to AUTHENTICATE before accessing the registry
+            - ALL big cloud provider offer private registries: Amazon ECR, GCR, Docker Hub (login), Nexus
+        • Docker Repository
+            - Collection of related images with same name but different version
+    
+    • Pushing Docker to Docker Registry:
+        docker login
+        docker tag snippetboxapp:latest {dockerhub_username}/snippetboxapp:latest
+        docker push {dockerhub_username}/snippetboxapp:latest
+
+    • Dockerfile:
+        Create a DEFINITION/PROCEDURE of how build an image from our application/package to server
+        - Dockerfile is text document that contains commands to assemble an image
+        - Docker can then build an image by reading those instruction
+        • Structure of Docker File [LINUX-BASED COMMAND]
+            - Base Image [FROM:{image}] (you choose the base image, depending on which tools you need to have available)
+            - Copy application files from host to container [COPY <src> /<dest>/ | COPY package.json /app/] (copy from host <src>, and adds them to the FILESYSTEM of the CONTAINER at the path <dest>)
+            - WORKDIR [WORKDIR /app] (Sets the WORKING DIRECTORY default for all following commands afterwards)
+            - Dependencies [RUN {command | npm install}] (Will execute any command in shell inside the container env)
+            - CMD [CMD [<sets of cmd>] | CMD ["node", "server.js"]] (Start the application in container, ONLY ONE CMD AT Dockerfile)
+        • Multi-layer Approach
+            - Every image consists of multiple image layers
+            - this makes docker so efficient, because image layers can be cached.
+
+
+    • Debugging Docker:
+        • docker logs
+        • docker exec -it {container_id/name} /bin/bash
+
+    • ON STARTUP (right before running):
+        you can define the ENV_VAR
+    
+====
+
+• NETWORKING IN DOCKER EXPLAINED:
+    • CONTAINER PORT:
+        While running the images, Application inside container runs in an isolated Docker Network
+        You must expose the container port to LOCAL NETWORK [HOST] (the machine the container runs on)
+        • DO a PORT BINDING:
+            Bind the container's port to the host's port to make the service available to the outside world
+            Example Story:
+                Bind that container port 80 to our local host on any port that I tell you on some specific port like 8080 or etc,
+                So I can access the container or whatever is running inside the container as if it was running on my localhost port 8080
+        • KNOW THE PORT:
+            - NGINX always use :80 port
+            - REDIS always use :6379 port
+            - MYSQL always use :3306
+            - POSTGRE always use :5432
+    •  INSPECT CONTAINER:
+        docker inspect -f {container_id}
+        • If you want to see IP Address of the container:
+        example: docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' {container_id}
+    • Additionally, since you're running your application in another container and you want them to communicate, 
+      you should also ensure that both containers are connected to the same Docker network.
+      This will allow them to communicate using their service names.
+        docker network create my-network
+        example (connecting mysql cont with app cont): docker run -d --name mysql-container -e MYSQL_ROOT_PASSWORD={password} --network my-network mysql:8.0.15
+
+====
+
+• COMMAND EXPLAINED:
+    • docker images
+        List all docker images
+
+    • docker ps
+        List all running containers
+        - ALL CONTAINERS (include stopped): -a or --all
+
+    • docker pull {image_name}:{tag}
+        Pull an image from a registry
+
+    • docker build -t {create_image_name}:{create_tag} .
+        Builds a Docker image from a Dockerfile
+        - TAGS: -t or --tags
+        - . : current directory (root) or whereever Dockerfile is located
+
+    • docker run {image_name}:{tag}
+        Creates a container from given image and starts it
+        - DETACHED MODE: -d or --detach
+            Run container in background and prints the container ID
+        - PORT BINDING: -p or --publish
+            -p {HOST_PORT}:{CONTAINER_PORT}
+            example: docker run -d -p 9000:80 nginx:1.23
+        - NAMING: --name
+            Assign a name to the container
+            example: docker run --name web-app -d -p 9090:80 {image_name}:{tag}
+        NOTE:
+            1. Creates a new container everytime, Doesn't re-use previous container
+
+    •  docker logs {container_id} / {container_name}
+        View logs from service running inside the container. (which are present at the execution time only)
+
+    • docker stop {container_id}
+        [IMPORTANT] Stop one or more running containers, TO SAVE UP YOUR RAM. [WORKING WITH CONTAINER, NOT IMAGES]
+
+    • docker start {container_id} 
+        Start one or more stopped containers [WORKING WITH CONTAINER, NOT IMAGES]
+        example : docker start {container_ID_1} {container_ID_2} / {container_name_1} {container_name 2}
+
+    • docker inspect -f {container_id}
+
+    • docker network create my-network
+
+    • docker exec -it {CONTAINER_ID} /bin/bash
+        This will do inspect inside running container with interactive terminal (CLI)
+
+====
+
+VOLUME IN DOCKER EXPLAINE:
+    Data in docker located in: /var/lib/mysql/data
+    • When we need Docker Volumes?
+        • Data is gone! When restarting or removing the container (then the data in this virtual file system is gone and it starts from fresh state)
+        • Want to save a changes that our application is making in database
+    • The Way Docker Volumes is work?
+        • That we plug the physical file system (from host to virtual)
+        • So in simple, Folder in physical host file is MOUNTED into the virtual file system of Docker
+        • Data gets automatically replicated interchangeable (HOST <=> VIRTUAL FILE SYSTEM)
+    • 3 Volume Types
+        • HOST VOLUMES
+            docker run \
+                -v <host file system/volumes>:<docker file system/volumes> | -v /home/mount/data:/var/lib/mysql/data
+        • ANONYMOUS VOLUMES [AUTOMATICALLY CREATED BY DOCKER]
+            docker run \
+                -v /var/lib/mysql/data [under /var/lib/docker/volumes/random-hash/_data]
+            • for each container a folder is generated that gets mounted
+        • NAMED VOLUMES [IMPROVED ANONYMOUS VOLUMES] [SHOULD USE IN >>> [PRODUCTION] <<<]
+            docker run \
+                -v <name>:/var/lib/mysql/data
+            • you can reference the volume by name
+
+
+====
+
+• NOTE:
+    1. While Running an Images, Docker generates a random name for the container automatically if you don't specify one
+    2. While Running an Images, You may still want to see the logs, which can be useful for debugging
+    3. DOCKER pulls image automatically, if it doesn't find it locally
+    4. ON PORT BINDING, Only 1 service can run on a specific port on the host [So only 1 service can run on port 9000]
+
+====
+
+• BEST PRACTICES:
+    1. TO REMOVE CONFUSE, Standard to use the same port on your host as container is using while PORT BINDING
+        example : -p 3306:3306
+
+====
+
+• Docker in Cloud VMs:
+    In Google Cloud Platform (GCP), when you deploy containers in a Virtual Machine (VM) instance, you typically manage IP addresses at the VM level, and individual containers share the VM's network stack. Each VM instance has its own external IP address, and you can also configure internal IP addresses if needed.
+
+====
+
+• Docker in Kubernetes:
