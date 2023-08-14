@@ -19,9 +19,12 @@ const helmet                        = require('helmet')
 
 const app = express()
 
+// MONGO CLIENT
+// const MongoClient = require('mongodb').MongoClient
+
 // Mongoose Connection Setup
   // DB Variable
-  const mongoDB = process.env.MONGODB_URI || dev_db_url
+  const mongoDB = process.env.MONGODB_URI || process.env.MONGODB_URI_CLIENT
   // Import Connection
   const mongoose = require('mongoose')
   mongoose.connect(mongoDB , {
@@ -30,6 +33,13 @@ const app = express()
   })
   const db = mongoose.connection
   db.on('error', console.error.bind(console, "MongoDB connection error"))
+
+  // // USE MONGO CLIENT
+  // MongoClient.connect(mongoDB, function(err, client) {
+  //   if (err) console.log(err);
+  //   const db = client.db(mongoDB);
+  //   client.close();
+  // });
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
